@@ -13,12 +13,18 @@ const initializeProvider = (): AleoProvider | null => {
     return {
       connect: async () => {
         try {
-          // Leo Wallet connect method with decrypt permission and network
-          const address = await leoWallet.connect("ON_CHAIN_HISTORY", "testnetbeta");
+          // Try simple connection first
+          let address;
+          try {
+            address = await leoWallet.connect();
+          } catch (err) {
+            // If simple connect fails, try with explicit parameters
+            address = await leoWallet.connect("UPON_REQUEST", "testnet3");
+          }
           return address;
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
-          throw new Error('Failed to connect to Leo Wallet. Please make sure it is unlocked and try again.');
+          throw new Error('Failed to connect to Leo Wallet. Please check your wallet permissions and network settings.');
         }
       },
       disconnect: async () => {
@@ -30,8 +36,18 @@ const initializeProvider = (): AleoProvider | null => {
       },
       getAddress: async () => {
         try {
-          // Get the current connected account
-          return await leoWallet.account;
+          // Try multiple ways to get the address
+          if (leoWallet.account) {
+            return leoWallet.account;
+          }
+          if (leoWallet.publicKey) {
+            return leoWallet.publicKey;
+          }
+          // Try calling getAccount method if available
+          if (typeof leoWallet.getAccount === 'function') {
+            return await leoWallet.getAccount();
+          }
+          throw new Error('No account found');
         } catch (error) {
           console.error('Failed to get Leo Wallet address:', error);
           throw error;

@@ -131,6 +131,8 @@ const WalletConnector: React.FC<WalletConnectorProps> = ({
             <i className="fas fa-exclamation-triangle me-1"></i>
             {error}
           </small>
+          
+          {/* Installation link */}
           {error.includes('install') && (
             <div className="mt-1">
               <a 
@@ -141,6 +143,19 @@ const WalletConnector: React.FC<WalletConnectorProps> = ({
               >
                 Install Leo Wallet
               </a>
+            </div>
+          )}
+          
+          {/* Troubleshooting tips */}
+          {(error.includes('permissions') || error.includes('network')) && (
+            <div className="mt-2">
+              <small className="text-muted">
+                <strong>Try these fixes:</strong><br />
+                • Make sure Leo Wallet is unlocked<br />
+                • Wait for wallet to sync to 100%<br />
+                • Disable other crypto wallets<br />
+                • Refresh the page and try again
+              </small>
             </div>
           )}
         </div>
