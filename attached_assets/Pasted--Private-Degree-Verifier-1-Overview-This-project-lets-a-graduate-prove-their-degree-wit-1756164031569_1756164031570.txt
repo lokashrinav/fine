@@ -1,0 +1,68 @@
+## Private Degree Verifier
+
+### 1. Overview
+
+This project lets a graduate prove their degree without sharing personal data. It uses zero knowledge proofs on Aleo.
+
+### 2. Core Components
+
+1. **Credential Issuer**
+
+   * A small service that signs degree records.
+   * Inputs: hashed diploma fields (degree, school, date).
+   * Output: a signed credential blob.
+
+2. **Proof Circuit (Leo)**
+
+   * Takes: hashed diploma data and a signature.
+   * Verifies that data matches a valid signature.
+   * Outputs: a zk proof.
+
+3. **Web Frontend**
+
+   * React app with simple UI.
+   * Allows user to upload credential blob.
+   * Runs proof via Leo WebAssembly in browser or via node.
+   * Connects to Aleo wallet.
+
+4. **Verification Endpoint**
+
+   * A serverless API (for example on Vercel).
+   * Accepts: proof and public root (school public key).
+   * Returns: pass or fail.
+
+### 3. Tech Stack
+
+* **Leo**: writing and compiling circuits.
+* **JavaScript / TypeScript**: issuer tool and frontend.
+* **React**: user interface.
+* **Aleo Wallet Adapter**: integrate wallet in browser.
+* **Serverless Functions**: deploy verification API.
+
+### 4. Milestones
+
+| Step | Description                                     | Time Estimate |
+| ---- | ----------------------------------------------- | ------------- |
+| 1    | Set up Leo development and compile simple proof | 1 day         |
+| 2    | Build issuer tool (signing CLI)                 | 0.5 day       |
+| 3    | Write proof circuit for diploma check           | 1 day         |
+| 4    | Scaffold React UI and wallet connection         | 1 day         |
+| 5    | Integrate proof run in browser or node          | 1 day         |
+| 6    | Deploy serverless verify endpoint               | 0.5 day       |
+| 7    | End to end test on testnet                      | 1 day         |
+| 8    | Prepare mainnet deploy and demo                 | 1 day         |
+
+### 5. Next Steps
+
+1. Install Leo and run `leo new private_degree`.
+2. Define data structure for diploma in `program.leo`.
+3. Generate key pair for issuer (school). Keep private key safe.
+4. Write issuer script to hash and sign diploma data.
+5. Build simple React page with file input and button.
+6. Hook Leo proof call in frontend.
+7. Write serverless verify function.
+8. Test full flow locally.
+
+---
+
+Feel free to adjust any part or ask for details on a specific step.
