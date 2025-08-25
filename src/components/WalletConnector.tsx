@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { WalletState } from '../types';
-import { connectWallet, disconnectWallet, getWalletInfo } from '../services/aleoService';
+import { connectWallet, disconnectWallet, getWalletInfo, isWalletAvailable, getWalletInstallUrl, getWalletType } from '../services/aleoService';
 
 interface WalletConnectorProps {
   walletState: WalletState;
@@ -87,31 +87,63 @@ const WalletConnector: React.FC<WalletConnectorProps> = ({
     );
   }
 
+  const walletType = getWalletType();
+  const hasWallet = isWalletAvailable();
+
   return (
     <div className="d-flex flex-column align-items-end">
-      <button
-        className="btn btn-primary"
-        onClick={handleConnect}
-        disabled={isConnecting}
-      >
-        {isConnecting ? (
-          <>
-            <i className="fas fa-spinner spinner me-2"></i>
-            Connecting...
-          </>
-        ) : (
-          <>
-            <i className="fas fa-wallet me-2"></i>
-            Connect Wallet
-          </>
-        )}
-      </button>
+      {!hasWallet ? (
+        <div className="text-center">
+          <button
+            className="btn btn-outline-primary"
+            onClick={() => window.open(getWalletInstallUrl(), '_blank')}
+          >
+            <i className="fas fa-download me-2"></i>
+            Install Leo Wallet
+          </button>
+          <small className="text-muted d-block mt-1">
+            Wallet not detected
+          </small>
+        </div>
+      ) : (
+        <button
+          className="btn btn-primary"
+          onClick={handleConnect}
+          disabled={isConnecting}
+        >
+          {isConnecting ? (
+            <>
+              <i className="fas fa-spinner spinner me-2"></i>
+              Connecting...
+            </>
+          ) : (
+            <>
+              <i className="fas fa-wallet me-2"></i>
+              Connect {walletType || 'Wallet'}
+            </>
+          )}
+        </button>
+      )}
       
       {error && (
-        <small className="text-danger mt-1">
-          <i className="fas fa-exclamation-triangle me-1"></i>
-          {error}
-        </small>
+        <div className="text-danger mt-1">
+          <small>
+            <i className="fas fa-exclamation-triangle me-1"></i>
+            {error}
+          </small>
+          {error.includes('install') && (
+            <div className="mt-1">
+              <a 
+                href={getWalletInstallUrl()} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-sm btn-outline-primary"
+              >
+                Install Leo Wallet
+              </a>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

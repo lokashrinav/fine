@@ -9,38 +9,61 @@ let walletProvider: AleoProvider | null = null;
 const initializeProvider = (): AleoProvider | null => {
   // Check for Leo Wallet (most common Aleo wallet)
   if (typeof window !== 'undefined' && (window as any).leoWallet) {
-    return (window as any).leoWallet;
+    const leoWallet = (window as any).leoWallet;
+    return {
+      connect: async () => {
+        try {
+          const accounts = await leoWallet.connect();
+          return accounts[0];
+        } catch (error) {
+          throw new Error('Failed to connect to Leo Wallet');
+        }
+      },
+      disconnect: async () => {
+        await leoWallet.disconnect();
+      },
+      getAddress: async () => {
+        const accounts = await leoWallet.getAccounts();
+        return accounts[0];
+      },
+      getBalance: async () => {
+        // Leo Wallet doesn't directly provide balance, return placeholder
+        return '0.0';
+      },
+      signMessage: async (message: string) => {
+        const messageBytes = new TextEncoder().encode(message);
+        const signature = await leoWallet.signMessage(messageBytes);
+        return new TextDecoder().decode(signature);
+      },
+      requestTransaction: async (transaction: any) => {
+        return await leoWallet.requestTransaction(transaction);
+      }
+    };
   }
 
-  // Check for other potential Aleo wallet providers
+  // Check for other Aleo wallet providers
   if (typeof window !== 'undefined' && (window as any).aleo) {
     return (window as any).aleo;
   }
 
-  // Fallback mock provider for development
-  return {
-    connect: async () => {
-      const mockAddress = 'aleo1' + Math.random().toString(36).substring(2, 50);
-      return mockAddress;
-    },
-    disconnect: async () => {
-      console.log('Wallet disconnected');
-    },
-    getAddress: async () => {
-      return 'aleo1' + Math.random().toString(36).substring(2, 50);
-    },
-    getBalance: async () => {
-      return (Math.random() * 1000).toFixed(2);
-    },
-    signMessage: async (message: string) => {
-      // Mock signature - in real implementation this would be cryptographically signed
-      return 'sign_' + btoa(message) + '_mock';
-    },
-    requestTransaction: async (transaction: any) => {
-      // Mock transaction ID
-      return 'tx_' + Math.random().toString(36).substring(2, 20);
-    }
-  };
+  // Check if any Aleo wallet is available but not initialized
+  if (typeof window !== 'undefined') {
+    // Wait for wallet to load
+    return new Promise((resolve) => {
+      const checkWallet = () => {
+        if ((window as any).leoWallet) {
+          resolve(initializeProvider());
+        } else {
+          setTimeout(checkWallet, 100);
+        }
+      };
+      // Give up after 5 seconds
+      setTimeout(() => resolve(null), 5000);
+      checkWallet();
+    }) as any;
+  }
+
+  return null;
 };
 
 /**
@@ -48,16 +71,21 @@ const initializeProvider = (): AleoProvider | null => {
  */
 export const connectWallet = async (): Promise<string> => {
   try {
-    walletProvider = initializeProvider();
+    // Check if wallet is available first
+    if (!isWalletAvailable()) {
+      throw new Error('No Aleo wallet found. Please install Leo Wallet from https://leo.app and refresh the page.');
+    }
+
+    walletProvider = await initializeProvider();
     
     if (!walletProvider) {
-      throw new Error('No Aleo wallet found. Please install Leo Wallet or compatible wallet.');
+      throw new Error('Failed to initialize wallet connection. Please make sure Leo Wallet is installed and unlocked.');
     }
 
     const address = await walletProvider.connect();
     
     if (!address) {
-      throw new Error('Failed to connect to wallet');
+      throw new Error('Failed to connect to wallet. Please make sure Leo Wallet is unlocked and try again.');
     }
 
     return address;
@@ -136,6 +164,45 @@ export const requestTransaction = async (transaction: any): Promise<string> => {
  * Check if wallet is available
  */
 export const isWalletAvailable = (): boolean => {
-  return typeof window !== 'undefined' && 
-         ((window as any).leoWallet || (window as any).aleo);
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  // Check for Leo Wallet
+  if ((window as any).leoWallet) {
+    return true;
+  }
+  
+  // Check for other Aleo wallets
+  if ((window as any).aleo) {
+    return true;
+  }
+  
+  return false;
+};
+
+/**
+ * Get wallet installation URL
+ */
+export const getWalletInstallUrl = (): string => {
+  return 'https://chromewebstore.google.com/detail/leo-wallet/nebnhfamliijlghikdgcigoebonmoibm';
+};
+
+/**
+ * Detect wallet type
+ */
+export const getWalletType = (): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
+  if ((window as any).leoWallet) {
+    return 'Leo Wallet';
+  }
+  
+  if ((window as any).aleo) {
+    return 'Aleo Wallet';
+  }
+  
+  return null;
 };
