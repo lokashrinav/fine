@@ -13,30 +13,57 @@ const initializeProvider = (): AleoProvider | null => {
     return {
       connect: async () => {
         try {
-          const accounts = await leoWallet.connect();
-          return accounts[0];
+          // Leo Wallet connect method with decrypt permission and network
+          const address = await leoWallet.connect("ON_CHAIN_HISTORY", "testnetbeta");
+          return address;
         } catch (error) {
-          throw new Error('Failed to connect to Leo Wallet');
+          console.error('Leo Wallet connection error:', error);
+          throw new Error('Failed to connect to Leo Wallet. Please make sure it is unlocked and try again.');
         }
       },
       disconnect: async () => {
-        await leoWallet.disconnect();
+        try {
+          await leoWallet.disconnect();
+        } catch (error) {
+          console.error('Leo Wallet disconnect error:', error);
+        }
       },
       getAddress: async () => {
-        const accounts = await leoWallet.getAccounts();
-        return accounts[0];
+        try {
+          // Get the current connected account
+          return await leoWallet.account;
+        } catch (error) {
+          console.error('Failed to get Leo Wallet address:', error);
+          throw error;
+        }
       },
       getBalance: async () => {
         // Leo Wallet doesn't directly provide balance, return placeholder
         return '0.0';
       },
       signMessage: async (message: string) => {
-        const messageBytes = new TextEncoder().encode(message);
-        const signature = await leoWallet.signMessage(messageBytes);
-        return new TextDecoder().decode(signature);
+        try {
+          const messageBytes = new TextEncoder().encode(message);
+          const signature = await leoWallet.signMessage(messageBytes, 'utf8');
+          
+          // Convert signature to readable format
+          const signString = Array.from(signature, (byte: number) => 
+            String.fromCharCode(byte)
+          ).join('');
+          
+          return signString;
+        } catch (error) {
+          console.error('Leo Wallet signing error:', error);
+          throw new Error('Failed to sign message with Leo Wallet');
+        }
       },
       requestTransaction: async (transaction: any) => {
-        return await leoWallet.requestTransaction(transaction);
+        try {
+          return await leoWallet.requestTransaction(transaction);
+        } catch (error) {
+          console.error('Leo Wallet transaction error:', error);
+          throw error;
+        }
       }
     };
   }
@@ -46,21 +73,10 @@ const initializeProvider = (): AleoProvider | null => {
     return (window as any).aleo;
   }
 
-  // Check if any Aleo wallet is available but not initialized
+  // Wait for wallet to load if we're in browser
   if (typeof window !== 'undefined') {
-    // Wait for wallet to load
-    return new Promise((resolve) => {
-      const checkWallet = () => {
-        if ((window as any).leoWallet) {
-          resolve(initializeProvider());
-        } else {
-          setTimeout(checkWallet, 100);
-        }
-      };
-      // Give up after 5 seconds
-      setTimeout(() => resolve(null), 5000);
-      checkWallet();
-    }) as any;
+    // Return null immediately, don't wait
+    return null;
   }
 
   return null;
@@ -76,7 +92,7 @@ export const connectWallet = async (): Promise<string> => {
       throw new Error('No Aleo wallet found. Please install Leo Wallet from https://leo.app and refresh the page.');
     }
 
-    walletProvider = await initializeProvider();
+    walletProvider = initializeProvider();
     
     if (!walletProvider) {
       throw new Error('Failed to initialize wallet connection. Please make sure Leo Wallet is installed and unlocked.');
