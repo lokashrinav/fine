@@ -13,18 +13,12 @@ const initializeProvider = (): AleoProvider | null => {
     return {
       connect: async () => {
         try {
-          // Try simple connection first
-          let address;
-          try {
-            address = await leoWallet.connect();
-          } catch (err) {
-            // If simple connect fails, try with explicit parameters
-            address = await leoWallet.connect("UPON_REQUEST", "testnet3");
-          }
-          return address;
+          // Leo Wallet connect method - no parameters needed
+          const result = await leoWallet.connect();
+          return result;
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
-          throw new Error('Failed to connect to Leo Wallet. Please check your wallet permissions and network settings.');
+          throw new Error('Failed to connect to Leo Wallet. Please make sure it is unlocked and try again.');
         }
       },
       disconnect: async () => {
