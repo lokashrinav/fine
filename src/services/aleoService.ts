@@ -13,9 +13,34 @@ const initializeProvider = (): AleoProvider | null => {
     return {
       connect: async () => {
         try {
-          // Leo Wallet connect method - no parameters needed
-          const result = await leoWallet.connect();
-          return result;
+          // Try different methods to connect to Leo Wallet
+          let accounts = null;
+          
+          // Method 1: Try requestAccounts (most common)
+          if (typeof leoWallet.requestAccounts === 'function') {
+            accounts = await leoWallet.requestAccounts();
+            if (accounts && accounts.length > 0) {
+              return accounts[0];
+            }
+          }
+          
+          // Method 2: Try getAddress
+          if (typeof leoWallet.getAddress === 'function') {
+            const address = await leoWallet.getAddress();
+            if (address) {
+              return address;
+            }
+          }
+          
+          // Method 3: Try connect without parameters
+          if (typeof leoWallet.connect === 'function') {
+            const result = await leoWallet.connect();
+            if (result) {
+              return result;
+            }
+          }
+          
+          throw new Error('Unable to connect to Leo Wallet');
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
           throw new Error('Failed to connect to Leo Wallet. Please make sure it is unlocked and try again.');
