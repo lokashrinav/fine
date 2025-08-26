@@ -7,6 +7,12 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5000,
     strictPort: true,
-    allowedHosts: ['localhost', '.replit.dev', '.repl.co']
+    allowedHosts: ['localhost', '.replit.dev', '.repl.co', '.replit.app']
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 5000,
+    strictPort: true,
+    allowedHosts: ['localhost', '.replit.dev', '.repl.co', '.replit.app']
   }
 })
