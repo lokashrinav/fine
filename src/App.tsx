@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import CredentialUploader from './components/CredentialUploader';
 import ProofGenerator from './components/ProofGenerator';
 import WalletConnector from './components/WalletConnector';
+import SampleCredentialGenerator from './components/SampleCredentialGenerator';
 import { WalletState, Credential, ProofStatus } from './types';
 
 const App: React.FC = () => {
@@ -80,6 +81,7 @@ const App: React.FC = () => {
                   <i className="fas fa-upload me-2"></i>
                   Upload Credential
                 </h5>
+                <SampleCredentialGenerator />
                 <CredentialUploader onCredentialUpload={handleCredentialUpload} />
                 
                 {credential && (
