@@ -1,94 +1,131 @@
 import { AleoProvider } from '../types';
+import { 
+  DecryptPermission, 
+  WalletAdapterNetwork 
+} from '@demox-labs/aleo-wallet-adapter-base';
 
 // Global wallet provider instance
 let walletProvider: AleoProvider | null = null;
-let isUsingMockWallet = false;
-
-/**
- * Mock Wallet for testing when real wallet has issues
- */
-class MockWallet {
-  private connected: boolean = false;
-  private mockAddress: string = 'aleo1qnr4dkkvkgfqph0vzc3y6z2eu975wnpz2925ntjccd5cfqxtyu8s7pyjh9';
-
-  async connect(): Promise<string> {
-    // Simulate connection delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    this.connected = true;
-    console.log('Mock wallet connected with address:', this.mockAddress);
-    return this.mockAddress;
-  }
-
-  async disconnect(): Promise<void> {
-    this.connected = false;
-    console.log('Mock wallet disconnected');
-  }
-
-  getAddress(): string {
-    if (!this.connected) throw new Error('Mock wallet not connected');
-    return this.mockAddress;
-  }
-
-  async getBalance(): Promise<string> {
-    return '100.0';
-  }
-
-  async signMessage(message: string): Promise<string> {
-    // Return a mock signature
-    return `mock_signature_${btoa(message).substring(0, 20)}`;
-  }
-
-  async requestTransaction(transaction: any): Promise<any> {
-    console.log('Mock transaction requested:', transaction);
-    return {
-      txId: `mock_tx_${Date.now()}`,
-      status: 'success'
-    };
-  }
-
-  isConnected(): boolean {
-    return this.connected;
-  }
-}
 
 /**
  * Initialize wallet connection by checking for available providers
  */
 const initializeProvider = (): AleoProvider | null => {
-  // Check for Leo Wallet
-  if (typeof window !== 'undefined' && (window as any).leoWallet) {
-    const leoWallet = (window as any).leoWallet;
+  // Check for Leo Wallet (window.leo is the actual wallet object)
+  if (typeof window !== 'undefined' && ((window as any).leo || (window as any).leoWallet)) {
+    const leoWallet = (window as any).leo || (window as any).leoWallet;
     
-    console.log('Leo Wallet detected, but using mock wallet due to extension bug');
-    console.log('To use real Leo Wallet once fixed, refresh the page after wallet update');
-    
-    // Use mock wallet due to Leo Wallet bug
-    isUsingMockWallet = true;
-    const mockWallet = new MockWallet();
+    console.log('Leo Wallet detected');
     
     return {
-      connect: () => mockWallet.connect(),
-      disconnect: () => mockWallet.disconnect(),
-      getAddress: async () => mockWallet.getAddress(),
-      getBalance: () => mockWallet.getBalance(),
-      signMessage: (message: string) => mockWallet.signMessage(message),
-      requestTransaction: (transaction: any) => mockWallet.requestTransaction(transaction)
+      connect: async () => {
+        try {
+          console.log('Current wallet state before connect:');
+          console.log('- publicKey:', leoWallet.publicKey);
+          console.log('- permission:', leoWallet.permission);
+          console.log('- network:', leoWallet.network);
+          
+          // Check if already connected
+          if (leoWallet.publicKey) {
+            console.log('Already connected, returning publicKey:', leoWallet.publicKey);
+            return leoWallet.publicKey;
+          }
+          
+          console.log('Calling connect with positional parameters...');
+          
+          // Connect with POSITIONAL parameters (not an object!)
+          await leoWallet.connect(
+            DecryptPermission.UponRequest,
+            WalletAdapterNetwork.Testnet
+          );
+          
+          console.log('Connect call completed');
+          console.log('Wallet state after connect:');
+          console.log('- publicKey:', leoWallet.publicKey);
+          console.log('- permission:', leoWallet.permission);
+          console.log('- network:', leoWallet.network);
+          
+          if (leoWallet.publicKey) {
+            console.log('Successfully connected! PublicKey:', leoWallet.publicKey);
+            return leoWallet.publicKey;
+          }
+          
+          throw new Error('No publicKey after connection');
+        } catch (error: any) {
+          console.error('Leo Wallet connection error:', error);
+          console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack
+          });
+          
+          // Check if publicKey was set despite error
+          if (leoWallet.publicKey) {
+            console.log('Have publicKey despite error:', leoWallet.publicKey);
+            return leoWallet.publicKey;
+          }
+          
+          throw new Error(`Failed to connect to Leo Wallet: ${error.message}`);
+        }
+      },
+      disconnect: async () => {
+        try {
+          if (typeof leoWallet.disconnect === 'function') {
+            await leoWallet.disconnect();
+          }
+        } catch (error) {
+          console.error('Leo Wallet disconnect error:', error);
+        }
+      },
+      getAddress: async () => {
+        try {
+          if (leoWallet.publicKey) {
+            return leoWallet.publicKey;
+          }
+          if (leoWallet.account) {
+            return leoWallet.account;
+          }
+          if (typeof leoWallet.getAccount === 'function') {
+            return await leoWallet.getAccount();
+          }
+          throw new Error('No account found');
+        } catch (error) {
+          console.error('Failed to get Leo Wallet address:', error);
+          throw error;
+        }
+      },
+      getBalance: async () => {
+        // Leo Wallet doesn't directly provide balance
+        return '0.0';
+      },
+      signMessage: async (message: string) => {
+        try {
+          const messageBytes = new TextEncoder().encode(message);
+          const signature = await leoWallet.signMessage(messageBytes);
+          
+          // Convert signature to readable format
+          const signString = Array.from(signature, (byte: number) => 
+            String.fromCharCode(byte)
+          ).join('');
+          
+          return signString;
+        } catch (error) {
+          console.error('Leo Wallet signing error:', error);
+          throw new Error('Failed to sign message with Leo Wallet');
+        }
+      },
+      requestTransaction: async (transaction: any) => {
+        try {
+          return await leoWallet.requestTransaction(transaction);
+        } catch (error) {
+          console.error('Leo Wallet transaction error:', error);
+          throw error;
+        }
+      }
     };
   }
 
-  // No wallet found, use mock wallet
-  console.log('No Aleo wallet detected, using mock wallet for development');
-  isUsingMockWallet = true;
-  const mockWallet = new MockWallet();
-  
-  return {
-    connect: () => mockWallet.connect(),
-    disconnect: () => mockWallet.disconnect(),
-    getAddress: async () => mockWallet.getAddress(),
-    getBalance: () => mockWallet.getBalance(),
-    signMessage: (message: string) => mockWallet.signMessage(message),
-    requestTransaction: (transaction: any) => mockWallet.requestTransaction(transaction)
-  };
+  return null;
 };
 
 /**
@@ -118,10 +155,7 @@ class AleoService {
    * Get the current wallet provider name
    */
   getWalletName(): string {
-    if (isUsingMockWallet) {
-      return 'Mock Wallet (Development)';
-    }
-    if (typeof window !== 'undefined' && (window as any).leoWallet) {
+    if (typeof window !== 'undefined' && ((window as any).leo || (window as any).leoWallet)) {
       return 'Leo Wallet';
     }
     return 'Unknown Wallet';
@@ -132,7 +166,7 @@ class AleoService {
    */
   async connect(): Promise<string> {
     if (!this.provider) {
-      throw new Error('No wallet provider available');
+      throw new Error('No Aleo wallet found. Please install Leo Wallet extension.');
     }
 
     try {
@@ -143,11 +177,6 @@ class AleoService {
       // Store connection in localStorage
       localStorage.setItem('aleo_wallet_connected', 'true');
       localStorage.setItem('aleo_wallet_address', address);
-      
-      if (isUsingMockWallet) {
-        console.log('Connected to mock wallet. This is for testing only.');
-        console.log('Real transactions will not be processed.');
-      }
       
       return address;
     } catch (error) {
@@ -242,13 +271,6 @@ class AleoService {
     }
     
     return false;
-  }
-
-  /**
-   * Check if using mock wallet
-   */
-  isUsingMock(): boolean {
-    return isUsingMockWallet;
   }
 }
 
