@@ -1,127 +1,129 @@
 import { AleoProvider } from '../types';
-import { LeoWalletAdapter } from '@demox-labs/aleo-wallet-adapter-leo';
-import { 
-  DecryptPermission, 
-  WalletAdapterNetwork 
-} from '@demox-labs/aleo-wallet-adapter-base';
 
 // Global wallet provider instance
 let walletProvider: AleoProvider | null = null;
-let leoAdapter: LeoWalletAdapter | null = null;
 
 /**
  * Initialize wallet connection by checking for available providers
  */
 const initializeProvider = (): AleoProvider | null => {
-  // Use Leo Wallet Adapter (recommended approach)
-  if (typeof window !== 'undefined') {
-    try {
-      // Initialize Leo Wallet Adapter
-      const adapter = new LeoWalletAdapter({
-        appName: 'Private Degree Verifier'
-      });
-      
-      leoAdapter = adapter;
-      
-      return {
-        connect: async () => {
-          try {
-            // Check if wallet is ready
-            console.log('Adapter ready state:', adapter.readyState);
-            console.log('Adapter connected:', adapter.connected);
-            
-            // Try connecting without parameters first
+  // Check for Leo Wallet directly (simpler approach)
+  if (typeof window !== 'undefined' && (window as any).leoWallet) {
+    const leoWallet = (window as any).leoWallet;
+    
+    console.log('Leo Wallet detected, available properties:', Object.keys(leoWallet));
+    
+    return {
+      connect: async () => {
+        try {
+          // Check if already connected
+          if (leoWallet.publicKey) {
+            console.log('Already connected, publicKey:', leoWallet.publicKey);
+            return leoWallet.publicKey;
+          }
+          
+          // Try the simplest connection method
+          console.log('Attempting basic connection...');
+          
+          // Some wallets use enable() method
+          if (typeof leoWallet.enable === 'function') {
             try {
-              console.log('Trying connect without parameters...');
-              await adapter.connect();
-            } catch (e1) {
-              console.log('Connect without params failed:', e1);
-              
-              // Try with just DecryptPermission
-              try {
-                console.log('Trying with DecryptPermission only...');
-                await adapter.connect(DecryptPermission.UponRequest);
-              } catch (e2) {
-                console.log('Connect with DecryptPermission failed:', e2);
-                
-                // Try with both parameters
-                try {
-                  console.log('Trying with both parameters...');
-                  await adapter.connect(
-                    DecryptPermission.UponRequest,
-                    WalletAdapterNetwork.Testnet
-                  );
-                } catch (e3) {
-                  console.log('Connect with both params failed:', e3);
-                  throw e3;
-                }
-              }
+              const result = await leoWallet.enable();
+              console.log('Enable result:', result);
+              if (result) return result;
+            } catch (e) {
+              console.log('Enable failed:', e);
             }
-            
-            // Get the public key/address
-            const publicKey = adapter.publicKey;
-            if (publicKey) {
-              return publicKey.toString();
+          }
+          
+          // Try requestAccounts
+          if (typeof leoWallet.requestAccounts === 'function') {
+            try {
+              const accounts = await leoWallet.requestAccounts();
+              console.log('RequestAccounts result:', accounts);
+              if (accounts && accounts[0]) return accounts[0];
+            } catch (e) {
+              console.log('RequestAccounts failed:', e);
             }
-            
-            throw new Error('No public key returned from wallet');
-          } catch (error) {
-            console.error('Leo Wallet connection error:', error);
-            throw new Error('Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.');
           }
-        },
-        disconnect: async () => {
-          try {
-            await adapter.disconnect();
-          } catch (error) {
-            console.error('Leo Wallet disconnect error:', error);
-          }
-        },
-        getAddress: async () => {
-          try {
-            const publicKey = adapter.publicKey;
-            if (publicKey) {
-              return publicKey.toString();
+          
+          // Try connect method
+          if (typeof leoWallet.connect === 'function') {
+            try {
+              const result = await leoWallet.connect();
+              console.log('Connect result:', result);
+              if (result) return result;
+            } catch (e) {
+              console.log('Connect failed:', e);
             }
-            throw new Error('No account found');
-          } catch (error) {
-            console.error('Failed to get Leo Wallet address:', error);
-            throw error;
           }
-        },
-        getBalance: async () => {
-          // Leo Wallet doesn't directly provide balance, return placeholder
-          return '0.0';
-        },
-        signMessage: async (message: string) => {
-          try {
-            const messageBytes = new TextEncoder().encode(message);
-            const signature = await adapter.signMessage(messageBytes);
-            
-            // Convert signature to readable format
-            const signString = Array.from(signature, (byte: number) => 
-              String.fromCharCode(byte)
-            ).join('');
-            
-            return signString;
-          } catch (error) {
-            console.error('Leo Wallet signing error:', error);
-            throw new Error('Failed to sign message with Leo Wallet');
+          
+          // Check publicKey again after attempts
+          if (leoWallet.publicKey) {
+            return leoWallet.publicKey;
           }
-        },
-        requestTransaction: async (transaction: any) => {
-          try {
-            // The adapter handles transaction requests
-            return await adapter.requestTransaction(transaction);
-          } catch (error) {
-            console.error('Leo Wallet transaction error:', error);
-            throw error;
-          }
+          
+          throw new Error('Unable to connect to Leo Wallet');
+        } catch (error) {
+          console.error('Leo Wallet connection error:', error);
+          throw new Error('Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.');
         }
-      };
-    } catch (error) {
-      console.error('Failed to initialize Leo Wallet Adapter:', error);
-    }
+      },
+      disconnect: async () => {
+        try {
+          if (typeof leoWallet.disconnect === 'function') {
+            await leoWallet.disconnect();
+          }
+        } catch (error) {
+          console.error('Leo Wallet disconnect error:', error);
+        }
+      },
+      getAddress: async () => {
+        try {
+          if (leoWallet.publicKey) {
+            return leoWallet.publicKey;
+          }
+          if (leoWallet.account) {
+            return leoWallet.account;
+          }
+          if (typeof leoWallet.getAccount === 'function') {
+            return await leoWallet.getAccount();
+          }
+          throw new Error('No account found');
+        } catch (error) {
+          console.error('Failed to get Leo Wallet address:', error);
+          throw error;
+        }
+      },
+      getBalance: async () => {
+        // Leo Wallet doesn't directly provide balance
+        return '0.0';
+      },
+      signMessage: async (message: string) => {
+        try {
+          const messageBytes = new TextEncoder().encode(message);
+          const signature = await leoWallet.signMessage(messageBytes);
+          
+          // Convert signature to readable format
+          const signString = Array.from(signature, (byte: number) => 
+            String.fromCharCode(byte)
+          ).join('');
+          
+          return signString;
+        } catch (error) {
+          console.error('Leo Wallet signing error:', error);
+          throw new Error('Failed to sign message with Leo Wallet');
+        }
+      },
+      requestTransaction: async (transaction: any) => {
+        try {
+          return await leoWallet.requestTransaction(transaction);
+        } catch (error) {
+          console.error('Leo Wallet transaction error:', error);
+          throw error;
+        }
+      }
+    };
   }
 
   return null;
@@ -154,7 +156,7 @@ class AleoService {
    * Get the current wallet provider name
    */
   getWalletName(): string {
-    if (leoAdapter) {
+    if (typeof window !== 'undefined' && (window as any).leoWallet) {
       return 'Leo Wallet';
     }
     return 'Unknown Wallet';
