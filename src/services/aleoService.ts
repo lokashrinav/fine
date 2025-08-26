@@ -26,11 +26,37 @@ const initializeProvider = (): AleoProvider | null => {
       return {
         connect: async () => {
           try {
-            // Connect to Leo Wallet using the adapter with proper permissions
-            await adapter.connect(
-              DecryptPermission.UponRequest,    // Use proper enum value
-              WalletAdapterNetwork.Testnet      // Use proper enum value
-            );
+            // Check if wallet is ready
+            console.log('Adapter ready state:', adapter.readyState);
+            console.log('Adapter connected:', adapter.connected);
+            
+            // Try connecting without parameters first
+            try {
+              console.log('Trying connect without parameters...');
+              await adapter.connect();
+            } catch (e1) {
+              console.log('Connect without params failed:', e1);
+              
+              // Try with just DecryptPermission
+              try {
+                console.log('Trying with DecryptPermission only...');
+                await adapter.connect(DecryptPermission.UponRequest);
+              } catch (e2) {
+                console.log('Connect with DecryptPermission failed:', e2);
+                
+                // Try with both parameters
+                try {
+                  console.log('Trying with both parameters...');
+                  await adapter.connect(
+                    DecryptPermission.UponRequest,
+                    WalletAdapterNetwork.Testnet
+                  );
+                } catch (e3) {
+                  console.log('Connect with both params failed:', e3);
+                  throw e3;
+                }
+              }
+            }
             
             // Get the public key/address
             const publicKey = adapter.publicKey;
