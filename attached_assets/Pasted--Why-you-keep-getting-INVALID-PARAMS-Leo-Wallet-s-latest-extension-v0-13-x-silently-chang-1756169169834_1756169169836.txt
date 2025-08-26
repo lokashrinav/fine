@@ -1,0 +1,82 @@
+**Why you keep getting `INVALID_PARAMS`**
+
+Leo Wallet’s latest extension (v0.13.x+) silently changed what it accepts in the `connect()` call:
+
+| Parameter           | Old testnet value                      | New value (June 2025+) |
+| ------------------- | -------------------------------------- | ---------------------- |
+| `decryptPermission` | `"DECRYPT_UPON_REQUEST"` (still valid) | **unchanged**          |
+| `network`           | `"testnet3"`                           | **`"testnetbeta"`**    |
+
+Anything other than those exact string literals now throws `INVALID_PARAMS`. Your code is still sending `"testnet3"`, so the wallet rejects the request.
+
+---
+
+### Fix in two lines
+
+```ts
+import { DecryptPermission, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
+
+await window.leoWallet.connect(
+  DecryptPermission.UponRequest,      // "DECRYPT_UPON_REQUEST"
+  WalletAdapterNetwork.TestnetBeta,   // "testnetbeta"  ← NEW
+  []                                  // optional program list
+);
+```
+
+*Confirm in the console*
+
+```ts
+console.log(DecryptPermission.UponRequest);   // should print "DECRYPT_UPON_REQUEST"
+console.log(WalletAdapterNetwork.TestnetBeta); // should print "testnetbeta"
+```
+
+If either log shows a number (0, 1, etc.) you’re on an outdated adapter—run `npm i @demox-labs/aleo-wallet-adapter-*@latest`.
+
+---
+
+### Other common pitfalls
+
+| Symptom                                              | Cause                           | Remedy                                                                                                   |
+| ---------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `publicKey`, `permission`, `network` all `undefined` | Wallet locked                   | Click the Leo icon, enter your password, then refresh your app.                                          |
+| `leoWallet` undefined                                | Using the wrong global          | The extension injects **`window.leoWallet`** in v0.13+. Older articles mention `window.leo`.             |
+| Still `INVALID_PARAMS` after update                  | Wrong decrypt permission string | Acceptable strings are `"NO_DECRYPT"`, `"DECRYPT_UPON_REQUEST"`, `"AUTO_DECRYPT"`, `"ON_CHAIN_HISTORY"`. |
+| Works in FoxWallet but not Leo                       | Network mismatch                | FoxWallet defaults to `"testnetbeta"` as well. Keep both wallets on the same network constant.           |
+
+---
+
+### Recommended long-term approach
+
+Instead of calling `window.leoWallet` directly, let the **React Wallet Adapter** handle these details:
+
+```tsx
+import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
+import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
+import { DecryptPermission, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
+
+function App() {
+  const wallets = useMemo(() => [
+    new LeoWalletAdapter({ appName: "DegreeProve" }),
+  ], []);
+
+  return (
+    <WalletProvider
+      wallets={wallets}
+      decryptPermission={DecryptPermission.UponRequest}
+      network={WalletAdapterNetwork.TestnetBeta}
+      autoConnect
+    >
+      {/* Your UI goes here */}
+    </WalletProvider>
+  );
+}
+```
+
+The adapter pops up the wallet, handles permission prompts, and keeps `publicKey`, `network`, and events in sync.
+
+---
+
+Try the updated network constant first—nine times out of ten that clears the `INVALID_PARAMS` error. If anything still looks off, let me know what the console prints for the two constants above and we’ll troubleshoot further. ([hc.foxwallet.com][1], [docs.leo.app][2])
+
+[1]: https://hc.foxwallet.com/docs/aleo/provider "Aleo Provider | FoxWallet Help Center"
+[2]: https://docs.leo.app/aleo-wallet-adapter/packages/core/base/docs/enumerations/decryptpermission "DecryptPermission | Leo Wallet Docs"

@@ -36,35 +36,13 @@ const initializeProvider = (): AleoProvider | null => {
           console.log('Available methods on leoWallet:', Object.keys(leoWallet));
           console.log('typeof leoWallet.connect:', typeof leoWallet.connect);
           
-          // Try different parameter combinations
-          try {
-            console.log('Attempt 1: Using string literals with empty array');
-            await leoWallet.connect("DECRYPT_UPON_REQUEST", "testnet3", []);
-          } catch (e1: any) {
-            console.log('Attempt 1 failed:', e1.message);
-            
-            try {
-              console.log('Attempt 2: Using string literals without third param');
-              await leoWallet.connect("DECRYPT_UPON_REQUEST", "testnet3");
-            } catch (e2: any) {
-              console.log('Attempt 2 failed:', e2.message);
-              
-              try {
-                console.log('Attempt 3: Using enum values');
-                await leoWallet.connect(DecryptPermission.UponRequest, WalletAdapterNetwork.Testnet);
-              } catch (e3: any) {
-                console.log('Attempt 3 failed:', e3.message);
-                
-                try {
-                  console.log('Attempt 4: Using different strings');
-                  await leoWallet.connect("UponRequest", "Testnet");
-                } catch (e4: any) {
-                  console.log('Attempt 4 failed:', e4.message);
-                  throw new Error('All connection attempts failed');
-                }
-              }
-            }
-          }
+          // Leo Wallet now expects "testnetbeta" instead of "testnet3"
+          console.log('Connecting with correct parameters for Leo Wallet v0.13+');
+          await leoWallet.connect(
+            "DECRYPT_UPON_REQUEST",  // Decrypt permission
+            "testnetbeta",          // NEW: Changed from "testnet3" to "testnetbeta"
+            []                      // Optional program list
+          );
           
           console.log('Connect call completed');
           console.log('Wallet state after connect:');
