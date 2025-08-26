@@ -10,37 +10,61 @@ const initializeProvider = (): AleoProvider | null => {
   // Check for Leo Wallet (most common Aleo wallet)
   if (typeof window !== 'undefined' && (window as any).leoWallet) {
     const leoWallet = (window as any).leoWallet;
+    
+    // Debug: Log available methods
+    console.log('Leo Wallet available methods:', Object.keys(leoWallet));
+    console.log('Leo Wallet object:', leoWallet);
+    
     return {
       connect: async () => {
         try {
-          // Try different methods to connect to Leo Wallet
-          let accounts = null;
+          // Check what methods are actually available
+          console.log('Available Leo Wallet methods:');
+          console.log('- requestAccounts:', typeof leoWallet.requestAccounts);
+          console.log('- getAddress:', typeof leoWallet.getAddress);
+          console.log('- connect:', typeof leoWallet.connect);
+          console.log('- enable:', typeof leoWallet.enable);
           
-          // Method 1: Try requestAccounts (most common)
-          if (typeof leoWallet.requestAccounts === 'function') {
-            accounts = await leoWallet.requestAccounts();
-            if (accounts && accounts.length > 0) {
-              return accounts[0];
+          // Method 1: Try enable (Ethereum-style)
+          if (typeof leoWallet.enable === 'function') {
+            try {
+              console.log('Trying enable()...');
+              const accounts = await leoWallet.enable();
+              if (accounts && accounts.length > 0) {
+                return accounts[0];
+              }
+            } catch (e) {
+              console.log('enable() failed:', e);
             }
           }
           
-          // Method 2: Try getAddress
-          if (typeof leoWallet.getAddress === 'function') {
-            const address = await leoWallet.getAddress();
-            if (address) {
-              return address;
+          // Method 2: Try requestAccounts
+          if (typeof leoWallet.requestAccounts === 'function') {
+            try {
+              console.log('Trying requestAccounts()...');
+              const accounts = await leoWallet.requestAccounts();
+              if (accounts && accounts.length > 0) {
+                return accounts[0];
+              }
+            } catch (e) {
+              console.log('requestAccounts() failed:', e);
             }
           }
           
           // Method 3: Try connect without parameters
           if (typeof leoWallet.connect === 'function') {
-            const result = await leoWallet.connect();
-            if (result) {
-              return result;
+            try {
+              console.log('Trying connect()...');
+              const result = await leoWallet.connect();
+              if (result) {
+                return result;
+              }
+            } catch (e) {
+              console.log('connect() failed:', e);
             }
           }
           
-          throw new Error('Unable to connect to Leo Wallet');
+          throw new Error('Unable to connect to Leo Wallet - no working connection method found');
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
           throw new Error('Failed to connect to Leo Wallet. Please make sure it is unlocked and try again.');
