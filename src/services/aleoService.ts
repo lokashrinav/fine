@@ -16,54 +16,47 @@ const initializeProvider = (): AleoProvider | null => {
     return {
       connect: async () => {
         try {
+          console.log('Current publicKey:', leoWallet.publicKey);
+          console.log('Current permission:', leoWallet.permission);
+          console.log('Current network:', leoWallet.network);
+          
           // Check if already connected
           if (leoWallet.publicKey) {
-            console.log('Already connected, publicKey:', leoWallet.publicKey);
+            console.log('Already connected, returning publicKey:', leoWallet.publicKey);
             return leoWallet.publicKey;
           }
           
-          // Try the simplest connection method
-          console.log('Attempting basic connection...');
-          
-          // Some wallets use enable() method
-          if (typeof leoWallet.enable === 'function') {
-            try {
-              const result = await leoWallet.enable();
-              console.log('Enable result:', result);
-              if (result) return result;
-            } catch (e) {
-              console.log('Enable failed:', e);
-            }
-          }
-          
-          // Try requestAccounts
-          if (typeof leoWallet.requestAccounts === 'function') {
-            try {
-              const accounts = await leoWallet.requestAccounts();
-              console.log('RequestAccounts result:', accounts);
-              if (accounts && accounts[0]) return accounts[0];
-            } catch (e) {
-              console.log('RequestAccounts failed:', e);
-            }
-          }
-          
-          // Try connect method
+          // Try connect method with proper handling
           if (typeof leoWallet.connect === 'function') {
             try {
-              const result = await leoWallet.connect();
-              console.log('Connect result:', result);
-              if (result) return result;
-            } catch (e) {
-              console.log('Connect failed:', e);
+              console.log('Calling connect()...');
+              // The connect method might not return anything but sets publicKey
+              await leoWallet.connect();
+              
+              // After connect, check if publicKey is now available
+              if (leoWallet.publicKey) {
+                console.log('Connected! PublicKey:', leoWallet.publicKey);
+                return leoWallet.publicKey;
+              }
+            } catch (e: any) {
+              console.log('Connect error details:', e);
+              console.log('Error name:', e.name);
+              console.log('Error message:', e.message);
+              
+              // Check if the error is because it's already connected
+              if (leoWallet.publicKey) {
+                console.log('Error but publicKey exists:', leoWallet.publicKey);
+                return leoWallet.publicKey;
+              }
             }
           }
           
-          // Check publicKey again after attempts
+          // Final check
           if (leoWallet.publicKey) {
             return leoWallet.publicKey;
           }
           
-          throw new Error('Unable to connect to Leo Wallet');
+          throw new Error('Unable to connect to Leo Wallet - no publicKey available');
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
           throw new Error('Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.');
