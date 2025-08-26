@@ -38,11 +38,19 @@ const initializeProvider = (): AleoProvider | null => {
           
           // Leo Wallet now expects "testnetbeta" instead of "testnet3"
           console.log('Connecting with correct parameters for Leo Wallet v0.13+');
-          await leoWallet.connect(
-            "DECRYPT_UPON_REQUEST",  // Decrypt permission
-            "testnetbeta",          // NEW: Changed from "testnet3" to "testnetbeta"
-            []                      // Optional program list
-          );
+          
+          try {
+            await leoWallet.connect(
+              "DECRYPT_UPON_REQUEST",  // Decrypt permission
+              "testnetbeta",          // NEW: Changed from "testnet3" to "testnetbeta"
+              []                      // Optional program list
+            );
+          } catch (connectError: any) {
+            if (connectError.message?.includes('NETWORK_NOT_GRANTED')) {
+              throw new Error('Please approve the connection in Leo Wallet popup. Click the Leo Wallet extension icon if you don\'t see a popup.');
+            }
+            throw connectError;
+          }
           
           console.log('Connect call completed');
           console.log('Wallet state after connect:');
