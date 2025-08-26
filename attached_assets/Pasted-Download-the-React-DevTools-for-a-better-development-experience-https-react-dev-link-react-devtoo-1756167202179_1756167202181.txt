@@ -1,0 +1,85 @@
+Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error
+addToWindow.js:1 Error:  INVALID_PARAMS
+aleoService.ts:39 Leo Wallet connection error: WalletConnectionError: Some of the parameters you provided are invalid
+    at LeoWalletAdapter.connect (@demox-labs_aleo-wallet-adapter-leo.js?v=897e0d14:715:15)
+    at async Object.connect (aleoService.ts:26:13)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+connect @ aleoService.ts:39Understand this error
+WalletConnector.tsx:53 Failed to connect wallet: Error: Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.
+    at Object.connect (aleoService.ts:40:19)
+    at async AleoService.connect (aleoService.ts:142:23)
+    at async handleConnect (WalletConnector.tsx:43:23)
+handleConnect @ WalletConnector.tsx:53Understand this error

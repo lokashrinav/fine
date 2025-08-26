@@ -1,5 +1,9 @@
 import { AleoProvider } from '../types';
 import { LeoWalletAdapter } from '@demox-labs/aleo-wallet-adapter-leo';
+import { 
+  DecryptPermission, 
+  WalletAdapterNetwork 
+} from '@demox-labs/aleo-wallet-adapter-base';
 
 // Global wallet provider instance
 let walletProvider: AleoProvider | null = null;
@@ -24,8 +28,8 @@ const initializeProvider = (): AleoProvider | null => {
           try {
             // Connect to Leo Wallet using the adapter with proper permissions
             await adapter.connect(
-              'DECRYPT_UPON_REQUEST',  // Decryption permission
-              'testnet3'               // Network
+              DecryptPermission.UponRequest,    // Use proper enum value
+              WalletAdapterNetwork.Testnet      // Use proper enum value
             );
             
             // Get the public key/address
