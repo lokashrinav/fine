@@ -17,13 +17,13 @@ const ProofGenerator: React.FC<ProofGeneratorProps> = ({
   const [proofResponse, setProofResponse] = useState<ProofResponse | null>(null);
   const [verificationResult, setVerificationResult] = useState<boolean | null>(null);
   const [privateInputs, setPrivateInputs] = useState<DiplomaData>({
-    degree: '',
-    school: '',
-    graduationDate: '',
-    studentId: '',
-    gpa: undefined
+    degree: 'Bachelor of Science in Computer Science',
+    school: 'Massachusetts Institute of Technology',
+    graduationDate: '2023-05-15',
+    studentId: '123456789',
+    gpa: 3.85
   });
-  const [showPrivateInputs, setShowPrivateInputs] = useState(false);
+  const [showPrivateInputs, setShowPrivateInputs] = useState(true);
 
   const updateProofStatus = (status: ProofStatus) => {
     setProofStatus(status);
@@ -102,6 +102,11 @@ const ProofGenerator: React.FC<ProofGeneratorProps> = ({
         {showPrivateInputs && (
           <div className="card">
             <div className="card-body">
+              <div className="alert alert-info mb-3">
+                <i className="fas fa-info-circle me-2"></i>
+                <strong>Test Data Pre-filled:</strong> These fields are already filled with the exact values from the sample credential. Just click "Generate Proof" to test!
+              </div>
+              
               <div className="alert alert-warning">
                 <i className="fas fa-shield-alt me-2"></i>
                 <strong>Privacy Notice:</strong> This information stays on your device and is used only to generate the proof.
