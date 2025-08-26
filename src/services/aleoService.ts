@@ -32,6 +32,8 @@ const initializeProvider = (): AleoProvider | null => {
           }
           
           console.log('Calling connect with positional parameters...');
+          console.log('DecryptPermission.UponRequest value:', DecryptPermission.UponRequest);
+          console.log('WalletAdapterNetwork.Testnet value:', WalletAdapterNetwork.Testnet);
           
           // Connect with POSITIONAL parameters (not an object!)
           await leoWallet.connect(
