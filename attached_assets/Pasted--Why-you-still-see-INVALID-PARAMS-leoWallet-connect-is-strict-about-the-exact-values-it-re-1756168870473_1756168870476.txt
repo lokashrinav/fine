@@ -1,0 +1,69 @@
+### Why you still see `INVALID_PARAMS`
+
+`leoWallet.connect` is strict about the exact values it receives.
+In the current SDK each parameter must be a **string literal**, not an enum index or an object.
+
+* `DecryptPermission.UponRequest` must resolve to the string **`"DECRYPT_UPON_REQUEST"`** ([docs.leo.app][1])
+* `WalletAdapterNetwork.Testnet` must resolve to the string **`"testnet3"`** ([docs.leo.app][2])
+
+If your console shows numbers such as `2` or `0` for those constants, you are pulling an outdated adapter package. That numeric value makes the wallet throw `INVALID_PARAMS`.
+
+---
+
+### Quick checks
+
+1. **Log the actual values**
+
+   ```ts
+   console.log(DecryptPermission.UponRequest); // should print DECRYPT_UPON_REQUEST
+   console.log(WalletAdapterNetwork.Testnet);  // should print testnet3
+   ```
+
+   Seeing anything else means the enum is numeric and needs updating.
+
+2. **Update the adapter packages**
+
+   ```bash
+   npm i @demox-labs/aleo-wallet-adapter-base@latest \
+         @demox-labs/aleo-wallet-adapter-react@latest \
+         @demox-labs/aleo-wallet-adapter-reactui@latest
+   ```
+
+   These recent releases (0.0.23 or later) export string enums that match the wallet.
+
+3. **Pass an empty program list**
+
+   Some extension builds expect three arguments.
+
+   ```ts
+   await leoWallet.connect(
+     "DECRYPT_UPON_REQUEST",
+     "testnet3",
+     []                      // third argument can be an empty array
+   );
+   ```
+
+4. **Confirm the wallet is unlocked**
+
+   Open the Leo extension, enter the password, and keep the popup open.
+   Refresh the page after unlocking.
+
+---
+
+### Safer pattern with React provider
+
+The universal wallet adapter wraps all the details and spares you from manual connect calls. The docs show a minimal setup that uses `WalletProvider` and the ready-made **Connect Wallet** button ([developer.aleo.org][3]). Switching to that pattern removes the risk of passing the wrong parameters.
+
+---
+
+### If problems remain
+
+* Clear browser storage for your site and reload.
+* Make sure the Leo extension is version 0.13.x or newer.
+* Open the extension console → Settings → Developer logs to see any extra hints.
+
+Apply the steps above and the wallet should return a populated `publicKey`, `permission`, and `network` instead of `undefined`, and the `INVALID_PARAMS` error will disappear.
+
+[1]: https://docs.leo.app/aleo-wallet-adapter/packages/core/base/docs/enumerations/decryptpermission "DecryptPermission | Leo Wallet Docs"
+[2]: https://docs.leo.app/aleo-wallet-adapter/packages/core/base/docs/enumerations/walletadapternetwork "WalletAdapterNetwork | Leo Wallet Docs"
+[3]: https://developer.aleo.org/guides/wallets/universal_wallet_adapter/ "Universal Wallet Adapter | Aleo Developer Documentation"

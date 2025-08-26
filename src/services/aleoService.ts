@@ -35,10 +35,11 @@ const initializeProvider = (): AleoProvider | null => {
           console.log('DecryptPermission.UponRequest value:', DecryptPermission.UponRequest);
           console.log('WalletAdapterNetwork.Testnet value:', WalletAdapterNetwork.Testnet);
           
-          // Connect with POSITIONAL parameters (not an object!)
+          // Use STRING LITERALS directly (Leo Wallet expects these exact strings)
           await leoWallet.connect(
-            DecryptPermission.UponRequest,
-            WalletAdapterNetwork.Testnet
+            "DECRYPT_UPON_REQUEST",  // Must be this exact string
+            "testnet3",              // Must be this exact string  
+            []                       // Empty program list (third parameter)
           );
           
           console.log('Connect call completed');
