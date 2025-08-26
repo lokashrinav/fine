@@ -73,15 +73,21 @@ const WalletConnector: React.FC<WalletConnectorProps> = ({
 
   if (walletState.isConnected) {
     return (
-      <div className="wallet-status connected">
-        <i className="fas fa-check-circle"></i>
-        <span className="me-2">Connected</span>
+      <div className="wallet-status connected d-flex align-items-center">
+        <span className="badge bg-success me-2">
+          <i className="fas fa-check-circle me-1"></i>
+          Testnet Beta
+        </span>
+        <span className="text-muted me-2" style={{ fontSize: '0.9em' }}>
+          {walletState.address?.substring(0, 8)}...
+        </span>
         <button
-          className="btn btn-sm btn-outline-success"
+          className="btn btn-sm btn-outline-danger"
           onClick={handleDisconnect}
           title="Disconnect Wallet"
         >
-          <i className="fas fa-sign-out-alt"></i>
+          <i className="fas fa-sign-out-alt me-1"></i>
+          Disconnect
         </button>
       </div>
     );
@@ -151,6 +157,7 @@ const WalletConnector: React.FC<WalletConnectorProps> = ({
             <div className="mt-2">
               <small className="text-muted">
                 <strong>Try these fixes:</strong><br />
+                • Select "Aleo Testnet Beta" in Leo Wallet<br />
                 • Make sure Leo Wallet is unlocked<br />
                 • Wait for wallet to sync to 100%<br />
                 • Disable other crypto wallets<br />

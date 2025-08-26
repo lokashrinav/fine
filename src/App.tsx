@@ -3,6 +3,7 @@ import CredentialUploader from './components/CredentialUploader';
 import ProofGenerator from './components/ProofGenerator';
 import WalletConnector from './components/WalletConnector';
 import SampleCredentialGenerator from './components/SampleCredentialGenerator';
+import WalletSetupGuide from './components/WalletSetupGuide';
 import { WalletState, Credential, ProofStatus } from './types';
 
 const App: React.FC = () => {
@@ -54,6 +55,10 @@ const App: React.FC = () => {
                     onWalletStateChange={handleWalletStateChange}
                   />
                 </div>
+                
+                {!walletState.isConnected && (
+                  <WalletSetupGuide />
+                )}
                 
                 {walletState.isConnected && (
                   <div className="alert alert-success d-flex align-items-center">
