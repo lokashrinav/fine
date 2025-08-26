@@ -27,58 +27,45 @@ const initializeProvider = (): AleoProvider | null => {
             return leoWallet.publicKey;
           }
           
-          // Try different connection approaches
-          
-          // Approach 1: Try with empty string parameters (workaround for toString bug)
+          // Use the correct connect API format
           if (typeof leoWallet.connect === 'function') {
             try {
-              console.log('Trying connect with empty strings...');
-              await leoWallet.connect('', '');
+              console.log('Connecting with proper object parameters...');
+              
+              // Connect with the correct format
+              await leoWallet.connect({
+                network: { name: 'testnet' },
+                permissions: ['account']
+              });
+              
+              // After connection, check if publicKey is available
               if (leoWallet.publicKey) {
-                console.log('Connected with empty strings! PublicKey:', leoWallet.publicKey);
+                console.log('Connected successfully! PublicKey:', leoWallet.publicKey);
                 return leoWallet.publicKey;
               }
-            } catch (e1: any) {
-              console.log('Empty strings failed:', e1.message);
-            }
-          }
-          
-          // Approach 2: Try with null parameters
-          if (typeof leoWallet.connect === 'function') {
-            try {
-              console.log('Trying connect with nulls...');
-              await leoWallet.connect(null, null);
+              
+              // If no publicKey yet, wait a bit and check again
+              await new Promise(resolve => setTimeout(resolve, 100));
+              
               if (leoWallet.publicKey) {
-                console.log('Connected with nulls! PublicKey:', leoWallet.publicKey);
+                console.log('Connected after delay! PublicKey:', leoWallet.publicKey);
                 return leoWallet.publicKey;
               }
-            } catch (e2: any) {
-              console.log('Nulls failed:', e2.message);
-            }
-          }
-          
-          // Approach 3: Try without parameters (original)
-          if (typeof leoWallet.connect === 'function') {
-            try {
-              console.log('Trying connect without params...');
-              await leoWallet.connect();
-              if (leoWallet.publicKey) {
-                console.log('Connected! PublicKey:', leoWallet.publicKey);
-                return leoWallet.publicKey;
-              }
-            } catch (e3: any) {
-              console.log('No params failed:', e3.message);
+            } catch (e: any) {
+              console.log('Connect error:', e);
+              console.log('Error name:', e.name);
+              console.log('Error message:', e.message);
               
               // Check if publicKey was set despite error
               if (leoWallet.publicKey) {
-                console.log('Error but publicKey exists:', leoWallet.publicKey);
+                console.log('Have publicKey despite error:', leoWallet.publicKey);
                 return leoWallet.publicKey;
               }
             }
           }
           
-          // If we can't connect, provide a helpful error message
-          throw new Error('Unable to connect to Leo Wallet. This appears to be a known issue with the wallet extension. Please try: 1) Make sure Leo Wallet is unlocked, 2) Refresh the page and try again, 3) Check if there are any Leo Wallet updates available');
+          // If we still don't have a publicKey, throw error
+          throw new Error('Unable to connect to Leo Wallet. Please make sure: 1) Leo Wallet extension is unlocked, 2) You approve the connection request, 3) Try refreshing the page');
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
           throw error;

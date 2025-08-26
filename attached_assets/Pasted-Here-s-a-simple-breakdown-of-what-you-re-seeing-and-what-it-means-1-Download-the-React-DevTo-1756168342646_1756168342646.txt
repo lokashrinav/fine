@@ -1,0 +1,52 @@
+Here’s a simple breakdown of what you’re seeing and what it means:
+
+1. **“Download the React DevTools…”**
+   That line is just a suggestion from React to install its browser extension so you can inspect React components more easily. It’s not related to Aleo at all.
+
+2. **“Leo Wallet detected, available properties: Array(7)”**
+   Your code has successfully found the Leo Wallet extension and listed its API methods. That’s good—it means the browser extension is installed and exposed to your page.
+
+3. **“Current wallet state: publicKey: undefined, permission: undefined, network: undefined”**
+   The wallet object exists, but you haven’t unlocked it or granted your app any permissions yet. As a result, it doesn’t know your public key, what actions it’s allowed to do, or which network (testnet/mainnet) to use.
+
+4. **“Trying connect with empty strings… Error: INVALID\_PARAMS”**
+   Your code tried to call `connect(“”, “”)` but Leo Wallet rejects empty strings as invalid arguments.
+
+5. **“Trying connect with nulls… Error: Cannot read properties of undefined (reading 'toString')”**
+   Passing `null` broke inside the wallet code because it expected an object or string to call `.toString()` on.
+
+6. **“Trying connect without params… Error: Cannot read properties of undefined (reading 'toString')”**
+   Even calling `connect()` with no arguments ran into the same internal error.
+
+7. **“Leo Wallet connection error: Unable to connect to Leo Wallet. …”**
+   That is your catch-all error message after all the attempts failed.
+
+8. **“Failed to connect wallet: Error: Unable to connect to Leo Wallet.”**
+   Finally, your React component logs that it couldn’t get a connection.
+
+---
+
+### What you should do next
+
+1. **Unlock your wallet first**
+   Open the Leo Wallet extension, enter your password, and make sure you see your account address. If it’s locked, any `connect` call will fail.
+
+2. **Refresh the page**
+   After unlocking, reload your React app so it sees the unlocked state.
+
+3. **Use the correct connect call**
+   Instead of passing empty strings or null, call it like this (example for testnet):
+
+   ```ts
+   await window.leo.connect({
+     network: { name: "testnet" },
+     permissions: ["account"] 
+   });
+   ```
+
+   Check the [Leo Wallet docs](https://www.leo.app/docs/wallet-api) for the exact shape of the `connect` options.
+
+4. **Check for updates**
+   If it still fails, make sure your Leo Wallet extension is up to date. Sometimes older versions have bugs in the `.connect()` method.
+
+Once you’ve unlocked, refreshed, and used the right parameters, you should see `publicKey`, `permission`, and `network` populate instead of `undefined`, and the connection will succeed.
