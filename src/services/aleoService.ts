@@ -11,60 +11,65 @@ const initializeProvider = (): AleoProvider | null => {
   if (typeof window !== 'undefined' && (window as any).leoWallet) {
     const leoWallet = (window as any).leoWallet;
     
-    // Debug: Log available methods
-    console.log('Leo Wallet available methods:', Object.keys(leoWallet));
-    console.log('Leo Wallet object:', leoWallet);
-    
     return {
       connect: async () => {
         try {
-          // Check what methods are actually available
-          console.log('Available Leo Wallet methods:');
-          console.log('- requestAccounts:', typeof leoWallet.requestAccounts);
-          console.log('- getAddress:', typeof leoWallet.getAddress);
-          console.log('- connect:', typeof leoWallet.connect);
-          console.log('- enable:', typeof leoWallet.enable);
-          
-          // Method 1: Try enable (Ethereum-style)
-          if (typeof leoWallet.enable === 'function') {
-            try {
-              console.log('Trying enable()...');
-              const accounts = await leoWallet.enable();
-              if (accounts && accounts.length > 0) {
-                return accounts[0];
-              }
-            } catch (e) {
-              console.log('enable() failed:', e);
-            }
+          // Check if wallet already has publicKey (might be pre-connected)
+          if (leoWallet.publicKey) {
+            console.log('Wallet already has publicKey:', leoWallet.publicKey);
+            return leoWallet.publicKey;
           }
           
-          // Method 2: Try requestAccounts
-          if (typeof leoWallet.requestAccounts === 'function') {
-            try {
-              console.log('Trying requestAccounts()...');
-              const accounts = await leoWallet.requestAccounts();
-              if (accounts && accounts.length > 0) {
-                return accounts[0];
-              }
-            } catch (e) {
-              console.log('requestAccounts() failed:', e);
-            }
-          }
-          
-          // Method 3: Try connect without parameters
+          // Try connect with different parameter combinations
           if (typeof leoWallet.connect === 'function') {
             try {
-              console.log('Trying connect()...');
-              const result = await leoWallet.connect();
+              // Try with decryption permission and network
+              console.log('Trying connect with parameters...');
+              const result = await leoWallet.connect(
+                'DECRYPT_UPON_REQUEST',
+                'aleo:1',
+                ['viewKey', 'records']
+              );
+              
               if (result) {
                 return result;
               }
-            } catch (e) {
-              console.log('connect() failed:', e);
+              
+              // After connection, check if publicKey is now available
+              if (leoWallet.publicKey) {
+                return leoWallet.publicKey;
+              }
+            } catch (e1) {
+              console.log('Connect with params failed:', e1);
+              
+              // Try with just decryption permission
+              try {
+                const result = await leoWallet.connect('DECRYPT_UPON_REQUEST');
+                if (result || leoWallet.publicKey) {
+                  return result || leoWallet.publicKey;
+                }
+              } catch (e2) {
+                console.log('Connect with single param failed:', e2);
+                
+                // Try without any parameters
+                try {
+                  const result = await leoWallet.connect();
+                  if (result || leoWallet.publicKey) {
+                    return result || leoWallet.publicKey;
+                  }
+                } catch (e3) {
+                  console.log('Connect without params failed:', e3);
+                }
+              }
             }
           }
           
-          throw new Error('Unable to connect to Leo Wallet - no working connection method found');
+          // Final check for publicKey after all attempts
+          if (leoWallet.publicKey) {
+            return leoWallet.publicKey;
+          }
+          
+          throw new Error('Unable to connect to Leo Wallet');
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
           throw new Error('Failed to connect to Leo Wallet. Please make sure it is unlocked and try again.');
