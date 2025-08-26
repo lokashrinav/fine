@@ -16,9 +16,10 @@ const initializeProvider = (): AleoProvider | null => {
     return {
       connect: async () => {
         try {
-          console.log('Current publicKey:', leoWallet.publicKey);
-          console.log('Current permission:', leoWallet.permission);
-          console.log('Current network:', leoWallet.network);
+          console.log('Current wallet state:');
+          console.log('- publicKey:', leoWallet.publicKey);
+          console.log('- permission:', leoWallet.permission);
+          console.log('- network:', leoWallet.network);
           
           // Check if already connected
           if (leoWallet.publicKey) {
@@ -26,24 +27,49 @@ const initializeProvider = (): AleoProvider | null => {
             return leoWallet.publicKey;
           }
           
-          // Try connect method with proper handling
+          // Try different connection approaches
+          
+          // Approach 1: Try with empty string parameters (workaround for toString bug)
           if (typeof leoWallet.connect === 'function') {
             try {
-              console.log('Calling connect()...');
-              // The connect method might not return anything but sets publicKey
+              console.log('Trying connect with empty strings...');
+              await leoWallet.connect('', '');
+              if (leoWallet.publicKey) {
+                console.log('Connected with empty strings! PublicKey:', leoWallet.publicKey);
+                return leoWallet.publicKey;
+              }
+            } catch (e1: any) {
+              console.log('Empty strings failed:', e1.message);
+            }
+          }
+          
+          // Approach 2: Try with null parameters
+          if (typeof leoWallet.connect === 'function') {
+            try {
+              console.log('Trying connect with nulls...');
+              await leoWallet.connect(null, null);
+              if (leoWallet.publicKey) {
+                console.log('Connected with nulls! PublicKey:', leoWallet.publicKey);
+                return leoWallet.publicKey;
+              }
+            } catch (e2: any) {
+              console.log('Nulls failed:', e2.message);
+            }
+          }
+          
+          // Approach 3: Try without parameters (original)
+          if (typeof leoWallet.connect === 'function') {
+            try {
+              console.log('Trying connect without params...');
               await leoWallet.connect();
-              
-              // After connect, check if publicKey is now available
               if (leoWallet.publicKey) {
                 console.log('Connected! PublicKey:', leoWallet.publicKey);
                 return leoWallet.publicKey;
               }
-            } catch (e: any) {
-              console.log('Connect error details:', e);
-              console.log('Error name:', e.name);
-              console.log('Error message:', e.message);
+            } catch (e3: any) {
+              console.log('No params failed:', e3.message);
               
-              // Check if the error is because it's already connected
+              // Check if publicKey was set despite error
               if (leoWallet.publicKey) {
                 console.log('Error but publicKey exists:', leoWallet.publicKey);
                 return leoWallet.publicKey;
@@ -51,15 +77,11 @@ const initializeProvider = (): AleoProvider | null => {
             }
           }
           
-          // Final check
-          if (leoWallet.publicKey) {
-            return leoWallet.publicKey;
-          }
-          
-          throw new Error('Unable to connect to Leo Wallet - no publicKey available');
+          // If we can't connect, provide a helpful error message
+          throw new Error('Unable to connect to Leo Wallet. This appears to be a known issue with the wallet extension. Please try: 1) Make sure Leo Wallet is unlocked, 2) Refresh the page and try again, 3) Check if there are any Leo Wallet updates available');
         } catch (error) {
           console.error('Leo Wallet connection error:', error);
-          throw new Error('Failed to connect to Leo Wallet. Please make sure it is installed and unlocked.');
+          throw error;
         }
       },
       disconnect: async () => {
