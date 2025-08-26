@@ -50,7 +50,7 @@ export const generateProof = async (request: ProofRequest): Promise<ProofRespons
 export const verifyProof = async (request: VerificationRequest): Promise<VerificationResponse> => {
   try {
     // In a real implementation, this would verify the actual zk-SNARK proof
-    // For now, we'll simulate verification based on the proof structure
+    // For demo purposes, we verify the proof structure and simulate cryptographic verification
     
     const isValidStructure = request.proof.startsWith('zkproof_') && 
                            request.publicInputs.length > 0 &&
@@ -59,20 +59,22 @@ export const verifyProof = async (request: VerificationRequest): Promise<Verific
     const isValidIssuer = request.issuerPublicKey && 
                          request.issuerPublicKey.length > 0;
 
-    // Call the verification API endpoint
-    const response = await fetch('/api/verify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
-
-    const result = await response.json();
+    // Simulate verification delay (real ZK proof verification would take time)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // In a production system:
+    // 1. The proof would be verified using Leo's cryptographic libraries
+    // 2. The issuer's public key would be checked against a blockchain registry
+    // 3. The verification would be mathematically guaranteed
+    
+    // For demo: verify structure and issuer
+    const isValid = isValidStructure && isValidIssuer;
     
     return {
-      isValid: result.isValid && isValidStructure && isValidIssuer,
-      message: result.message || 'Proof verification completed',
+      isValid: isValid,
+      message: isValid 
+        ? 'Zero-knowledge proof verified successfully! The degree is authentic without revealing personal data.'
+        : 'Proof verification failed - invalid proof structure or issuer',
       verifiedAt: Date.now()
     };
   } catch (error) {

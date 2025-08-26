@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Credential, WalletState, ProofStatus, DiplomaData, ProofResponse } from '../types';
 import { generateProof, verifyProof } from '../services/proofService';
+import ProofExplanation from './ProofExplanation';
 
 interface ProofGeneratorProps {
   credential: Credential;
@@ -292,6 +293,9 @@ const ProofGenerator: React.FC<ProofGeneratorProps> = ({
           </p>
         </div>
       )}
+      
+      {/* Proof Explanation */}
+      <ProofExplanation />
     </div>
   );
 };
