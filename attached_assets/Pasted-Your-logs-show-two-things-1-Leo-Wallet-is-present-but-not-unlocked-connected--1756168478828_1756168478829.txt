@@ -1,0 +1,97 @@
+Your logs show two things:
+
+1. **Leo Wallet is present but not unlocked/connected**
+
+   ```
+   publicKey: undefined  
+   permission: undefined  
+   network: undefined  
+   ```
+
+   That means the extension is installed, but you haven’t given your app permission yet (and the wallet is probably locked).
+
+2. **Your `connect(...)` calls are using the wrong signature**
+   The low-level API expects **positional parameters**, not an object. Under the hood it’s defined as:
+
+   ```ts
+   connect(
+     decryptPermission: DecryptPermission,
+     network: WalletAdapterNetwork,
+     programs?: string[]
+   ): Promise<void>
+   ```
+
+   So when you passed an object, it tried to call `.toString()` on something that wasn’t there, hence the “reading ‘toString’” error.
+
+---
+
+## How to fix it
+
+### Option A: Call `connect` with the right arguments
+
+1. Import the enums from the adapter base package:
+
+   ```ts
+   import {
+     DecryptPermission,
+     WalletAdapterNetwork,
+   } from "@demox-labs/aleo-wallet-adapter-base";
+   ```
+2. Then connect like this (for testnet, with on-demand decryption permission):
+
+   ```ts
+   await window.leo.connect(
+     DecryptPermission.UponRequest,
+     WalletAdapterNetwork.Testnet
+   );
+   ```
+3. After that, `publicKey`, `permission`, and `network` should populate, and you can `signMessage()`, `requestRecords()`, etc. ([docs.leo.app][1])
+
+### Option B: Use the React wallet adapter
+
+Rather than calling `window.leo` yourself, the adapter packages wrap all of this for you:
+
+```tsx
+import React, { useMemo } from "react";
+import { WalletProvider } from "@demox-labs/aleo-wallet-adapter-react";
+import { WalletModalProvider, WalletMultiButton } from "@demox-labs/aleo-wallet-adapter-reactui";
+import { LeoWalletAdapter } from "@demox-labs/aleo-wallet-adapter-leo";
+import { DecryptPermission, WalletAdapterNetwork } from "@demox-labs/aleo-wallet-adapter-base";
+
+export function App() {
+  const wallets = useMemo(
+    () => [new LeoWalletAdapter({ appName: "DegreeProve" })],
+    []
+  );
+
+  return (
+    <WalletProvider
+      wallets={wallets}
+      decryptPermission={DecryptPermission.UponRequest}
+      network={WalletAdapterNetwork.Testnet}
+      autoConnect
+    >
+      <WalletModalProvider>
+        <WalletMultiButton /> {/* renders “Connect Wallet” */}
+        {/* your app goes here */}
+      </WalletModalProvider>
+    </WalletProvider>
+  );
+}
+```
+
+This UI component handles unlocking, permissions, and network for you—no manual `.connect()` calls needed. ([docs.leo.app][1])
+
+---
+
+Once you either call `window.leo.connect(...)` with the right arguments **or** use the React adapter as above, you should see:
+
+```txt
+publicKey: "aleo1…"
+permission: "UponRequest"
+network: "Testnet"
+```
+
+and no more `toString` errors.
+
+[1]: https://docs.leo.app/aleo-wallet-adapter "Wallet Adapter for Aleo Apps | Leo Wallet Docs"
