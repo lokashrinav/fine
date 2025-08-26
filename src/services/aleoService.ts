@@ -11,9 +11,10 @@ let walletProvider: AleoProvider | null = null;
  * Initialize wallet connection by checking for available providers
  */
 const initializeProvider = (): AleoProvider | null => {
-  // Check for Leo Wallet (window.leo is the actual wallet object)
-  if (typeof window !== 'undefined' && ((window as any).leo || (window as any).leoWallet)) {
-    const leoWallet = (window as any).leo || (window as any).leoWallet;
+  // Check for Leo Wallet - try window.leoWallet first, then window.leo
+  if (typeof window !== 'undefined' && (window as any).leoWallet) {
+    const leoWallet = (window as any).leoWallet;
+    console.log('Using window.leoWallet object');
     
     console.log('Leo Wallet detected');
     
@@ -32,15 +33,38 @@ const initializeProvider = (): AleoProvider | null => {
           }
           
           console.log('Calling connect with positional parameters...');
-          console.log('DecryptPermission.UponRequest value:', DecryptPermission.UponRequest);
-          console.log('WalletAdapterNetwork.Testnet value:', WalletAdapterNetwork.Testnet);
+          console.log('Available methods on leoWallet:', Object.keys(leoWallet));
+          console.log('typeof leoWallet.connect:', typeof leoWallet.connect);
           
-          // Use STRING LITERALS directly (Leo Wallet expects these exact strings)
-          await leoWallet.connect(
-            "DECRYPT_UPON_REQUEST",  // Must be this exact string
-            "testnet3",              // Must be this exact string  
-            []                       // Empty program list (third parameter)
-          );
+          // Try different parameter combinations
+          try {
+            console.log('Attempt 1: Using string literals with empty array');
+            await leoWallet.connect("DECRYPT_UPON_REQUEST", "testnet3", []);
+          } catch (e1: any) {
+            console.log('Attempt 1 failed:', e1.message);
+            
+            try {
+              console.log('Attempt 2: Using string literals without third param');
+              await leoWallet.connect("DECRYPT_UPON_REQUEST", "testnet3");
+            } catch (e2: any) {
+              console.log('Attempt 2 failed:', e2.message);
+              
+              try {
+                console.log('Attempt 3: Using enum values');
+                await leoWallet.connect(DecryptPermission.UponRequest, WalletAdapterNetwork.Testnet);
+              } catch (e3: any) {
+                console.log('Attempt 3 failed:', e3.message);
+                
+                try {
+                  console.log('Attempt 4: Using different strings');
+                  await leoWallet.connect("UponRequest", "Testnet");
+                } catch (e4: any) {
+                  console.log('Attempt 4 failed:', e4.message);
+                  throw new Error('All connection attempts failed');
+                }
+              }
+            }
+          }
           
           console.log('Connect call completed');
           console.log('Wallet state after connect:');
